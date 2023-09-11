@@ -378,13 +378,13 @@ def i_mapping(g, i_la, E_list):
     # print components
 
     # map each component to an index
-    index_to_component_map = dict(zip(xrange(len(components)), components))
+    index_to_component_map = dict(zip(range(len(components)), components))
     component_to_index_map = dict((y, x) for x, y in index_to_component_map.iteritems())
     # print index_to_component_map
 
     # use indexes to generate list of lists for component locations
     possible_locations = []
-    for index in xrange(len(components)):
+    for index in range(len(components)):
         c = index_to_component_map[index]
         possible_locations.append(i_la['components'][c]['loc'].keys())
     # print possible_locations
@@ -404,7 +404,7 @@ def i_mapping(g, i_la, E_list):
     # iterate through arrangements
     for a in arrangement_list:
         p_arrange = 1.0  # get probability of the arrangement a
-        for a_index in xrange(len(a)):
+        for a_index in range(len(a)):
             loc_at_index = a[a_index]  # location at the index
             c_at_index = index_to_component_map[a_index]  # component at the index
             p_arrange *= i_la['components'][c_at_index]['i'][loc_at_index]
@@ -544,7 +544,7 @@ def walk_st_i(la, sys, s, t, comp_locs):
 
         sum_v = sum(vals)
         if sum_v == 0:
-            probs = [1.0 / len(vals) for i in xrange(len(vals))]  # transition probabilities are uniform
+            probs = [1.0 / len(vals) for i in range(len(vals))]  # transition probabilities are uniform
         else:
             probs = [i / sum_v for i in vals]  # transition probabilities based on i
         # print nodes
@@ -571,7 +571,7 @@ def comp_draw_i(la):
         locs = list(la['components'][comp]['i'].keys())
         sum_v = sum(vals)
         if sum_v == 0.0:
-            probs = [1.0 / len(vals) for i in xrange(len(vals))]  # transition probabilities are uniform
+            probs = [1.0 / len(vals) for i in range(len(vals))]  # transition probabilities are uniform
         else:
             probs = [i / sum_v for i in vals]  # transition probabilities based on values
         idx = np.random.choice(len(locs), 1, p=probs)  # select next location based on transition probabilities
@@ -698,7 +698,7 @@ def plot_current(g_current, LA_I, cutoff=0.0, scale=1.0, elev=15, angle=-75, fac
     fig = plt.figure(figsize=figsize)
     plt.suptitle('Architecturally Normalized Current Representation', fontsize=title_size)
 
-    plotlocs = [n_sys * 100 + 11 + x for x in xrange(n_sys)]
+    plotlocs = [n_sys * 100 + 11 + x for x in range(n_sys)]
     for sys, ploc in zip(LA_I['systems'], plotlocs):
         # print plot_count, sys, ploc
         # make 3d axes
