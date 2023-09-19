@@ -50,16 +50,25 @@ def current_st(G, ss, tt, normalized=False, weight='r', dtype=float, solver='lu'
     mapping = dict(list(zip(ordering, list(range(n)))))
     #     print mapping
     H = nx.relabel_nodes(G, mapping)
-    betweenness = dict.fromkeys(H.nodes() + H.edges(), 0.0)  # b[v]=0 for v in H
-    for row, (s, t) in flow_matrix_row(H, weight=weight, dtype=dtype,
-                                       solver=solver):
+
+    betweenness = dict.fromkeys(list(H.nodes()) + list(H.edges()), 0.0)  # b[v]=0 for v in H
+    ##betweenness = dict.fromkeys(H.nodes() + H.edges(), 0.0)  # b[v]=0 for v in H
+    
+    print(list(betweenness.keys()))
+    for row, (s, t) in flow_matrix_row(H, weight=weight, dtype=dtype, solver=solver):
         #         print row, (s,t)
 
         i = mapping[ss]
         j = mapping[tt]
         betweenness[s] += 0.5 * np.abs(row[i] - row[j])
         betweenness[t] += 0.5 * np.abs(row[i] - row[j])
-        betweenness[(s, t)] += np.abs(row[i] - row[j])
+
+        #print(row)
+        #print(s,t)
+
+        #betweenness[(s, t)] += np.abs(row[i] - row[j]) #can just assign, doing this to fix error %MATT
+        betweenness[(s, t)] = np.abs(row[i] - row[j])
+
     if normalized:
         nb = (n - 1.0) * (n - 2.0)  # normalization factor
     else:
@@ -93,6 +102,8 @@ def i_arrange(g, la):
     """
 
     p_loc = {}
+    for key in la.keys():
+        print(key, la[key])
 
     # iterate through systems
     for sys, net in la.items():
@@ -109,8 +120,9 @@ def i_arrange(g, la):
         for i, j, d in net.edges(data=True):
             # get current distribution for edge
             p, i_loc, j_loc = i_dist(g, la, sys, (i, j),key='loc')
-            # print i, i_loc
-            # print j, j_loc
+
+            print(i_loc, j_loc)
+           
             for loc in i_loc:
                 #                 print i, loc, i_loc[loc], p_loc[i]
                 p_loc[i][loc].append(i_loc[loc])
@@ -134,6 +146,7 @@ def i_arrange(g, la):
             for loc in p_loc[comp]:
                 p_l = 1.0
                 for prob in p_loc[comp][loc]:
+                    print(prob)
                     p_l *= (prob)
                 # p_complement=reduce(lambda x, y: (1.0-x)*y, p_loc[comp][loc])
                 comp_loc[comp][loc] = p_l
@@ -356,7 +369,9 @@ def i_dist(g, la, sys, e,key='loc'):
 
     # Get current distribution
     p = {}  # probability dictionary without super nodes
-    for k in g.nodes() + g.edges():
+
+    ##for k in g.nodes() + g.edges():
+    for k in list(g.nodes()) + list(g.edges()):
         if k in p_r:
             p[k] = p_r[k]
         else:
@@ -399,8 +414,12 @@ def i_mapping(g, i_la, E_list):
     # print arrangement_list
 
     # initalize results dictionary
-    p = dict.fromkeys(g.nodes() + g.edges(), 0.0)
-    p_ele_not_used = dict.fromkeys(g.nodes() + g.edges(), 1.0)
+
+    p = dict.fromkeys(list(g.nodes()) + list(g.edges()), 0.0)
+    ##p = dict.fromkeys(g.nodes() + g.edges(), 0.0)
+
+    p_ele_not_used = dict.fromkeys(list(g.nodes()) + list(g.edges()), 1.0)
+    ##p_ele_not_used = dict.fromkeys(g.nodes() + g.edges(), 1.0)
 
     # track generated current matrices
     current_tuples = {}
@@ -416,7 +435,11 @@ def i_mapping(g, i_la, E_list):
         # print a, p_arrange
 
         # get probability that the element is not used by any logical connection in E
-        p_ele_not_used_a = dict.fromkeys(g.nodes() + g.edges(), 1.0)
+
+        p_ele_not_used_a = dict.fromkeys(list(g.nodes()) + list(g.edges()), 1.0)
+        ##p_ele_not_used_a = dict.fromkeys(g.nodes() + g.edges(), 1.0)
+
+
         for u, v, sys in E_list:
             # get the arrangement's component assignment
             u_index = component_to_index_map[u]  # get index in arrangement
