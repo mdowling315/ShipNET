@@ -42,6 +42,8 @@ def current_st(G, ss, tt, normalized=False, weight='r', dtype=float, solver='lu'
         raise nx.NetworkXError('current_flow_betweenness_centrality() ',
                                'not defined for digraphs.')
     if not nx.is_connected(G):
+        print(G.nodes)
+        print(G.edges)
         raise nx.NetworkXError("Graph not connected.")
     n = G.number_of_nodes()
     ordering = list(reverse_cuthill_mckee_ordering(G))
@@ -51,10 +53,17 @@ def current_st(G, ss, tt, normalized=False, weight='r', dtype=float, solver='lu'
     #     print mapping
     H = nx.relabel_nodes(G, mapping)
 
-    betweenness = dict.fromkeys(list(H.nodes()) + list(H.edges()), 0.0)  # b[v]=0 for v in H
+    sorting_edges = list(H.edges());
+    for i in range(len(sorting_edges)):
+        sorting_edges[i] = tuple(sorted(sorting_edges[i]))
+
+    betweennesskeys = list(H.nodes()) + sorting_edges
+
+    betweenness = dict.fromkeys(betweennesskeys, 0.0)  # b[v]=0 for v in H
+    ###betweenness = dict.fromkeys(list(H.nodes()) + list(H.edges()), 0.0)  # b[v]=0 for v in H
     ##betweenness = dict.fromkeys(H.nodes() + H.edges(), 0.0)  # b[v]=0 for v in H
     
-    print(list(betweenness.keys()))
+   # print(list(betweenness.keys()))
     for row, (s, t) in flow_matrix_row(H, weight=weight, dtype=dtype, solver=solver):
         #         print row, (s,t)
 
@@ -102,8 +111,8 @@ def i_arrange(g, la):
     """
 
     p_loc = {}
-    for key in la.keys():
-        print(key, la[key])
+    #for key in la.keys():
+    #    print(key, la[key])
 
     # iterate through systems
     for sys, net in la.items():
@@ -117,11 +126,14 @@ def i_arrange(g, la):
                 #                 p_loc[n]=dict.fromkeys(net.node[n]['loc'].keys(),[])
 
         # iterate through edges
+        #tirkey = 0;
         for i, j, d in net.edges(data=True):
+            #tirkey = tirkey+1
             # get current distribution for edge
             p, i_loc, j_loc = i_dist(g, la, sys, (i, j),key='loc')
 
-            print(i_loc, j_loc)
+            #print(tirkey)
+            #print(i_loc, j_loc)
            
             for loc in i_loc:
                 #                 print i, loc, i_loc[loc], p_loc[i]
@@ -146,7 +158,7 @@ def i_arrange(g, la):
             for loc in p_loc[comp]:
                 p_l = 1.0
                 for prob in p_loc[comp][loc]:
-                    print(prob)
+                    #print(prob)
                     p_l *= (prob)
                 # p_complement=reduce(lambda x, y: (1.0-x)*y, p_loc[comp][loc])
                 comp_loc[comp][loc] = p_l
@@ -175,7 +187,8 @@ def i_arrange(g, la):
             continue
         # update p_loc with components in system
         for n in net.nodes():
-            i_la[sys].node[n]['loc'] = dict(comp_loc[n])
+            ##i_la[sys].node[n]['loc'] = dict(comp_loc[n])
+            i_la[sys].nodes[n]['loc'] = dict(comp_loc[n])
 
             #     for sys, net in la.iteritems():
             #         print 'original',sys, la[sys].nodes(data=True)
@@ -211,7 +224,8 @@ def i_route(g, la):
 
             # add current to edges on edge network
             for n in ir_la[sys][i][j]['g'].nodes():
-                ir_la[sys][i][j]['g'].node[n]['i'] = float(p[n])
+                ##ir_la[sys][i][j]['g'].node[n]['i'] = float(p[n])
+                ir_la[sys][i][j]['g'].nodes[n]['i'] = float(p[n])
             for a, b in ir_la[sys][i][j]['g'].edges():
                 if (a,b) not in p:
                     key=(b,a)
@@ -499,9 +513,11 @@ def project_current_distribution_bus(g,i_la,bus={}):
             sys_bus = nx.Graph()
         for n in g_current.nodes():
             if n in sys_bus.nodes():
-                g_current.node[n][sys] = 1.0
+                ##g_current.node[n][sys] = 1.0
+                g_current.nodes[n][sys] = 1.0
             else:
-                g_current.node[n][sys] = p_sys[n]
+                ##g_current.node[n][sys] = p_sys[n]
+                g_current.nodes[n][sys] = p_sys[n]
         for i, j in g_current.edges():
             if ((i, j) in sys_bus.edges()) or ((j, i) in sys_bus.edges()):
                 g_current[i][j][sys] = 1.0
@@ -694,9 +710,9 @@ def plot_current(g_current, LA_I, cutoff=0.0, scale=1.0, elev=15, angle=-75, fac
     alpha = 0.85
 
     # axis
-    xstretch = 1.0
-    ystretch = 1.0
-    zstretch = 1.0
+    xstretch = 5.0
+    ystretch = 2.0
+    zstretch = 2.0
 
     # view
     elev = elev
@@ -755,8 +771,8 @@ def plot_current(g_current, LA_I, cutoff=0.0, scale=1.0, elev=15, angle=-75, fac
         mean_z = np.mean(z_l)
         min_z = min(z_l)
 
-        ax.text3D(min_x - .5, 0, mean_z, 'Stern', zdir='z', fontsize=label_size)
-        ax.text3D(max_x + .3, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
+        ax.text3D(min_x - 4.5, 0, mean_z, 'Stern', zdir='z', fontsize=label_size)
+        ax.text3D(max_x + 4.5, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
         ax.text3D(mean_x, 0, min_z - 1.5, 'Keel', zdir='x', fontsize=label_size)
 
         # component locations
@@ -776,7 +792,8 @@ def plot_current(g_current, LA_I, cutoff=0.0, scale=1.0, elev=15, angle=-75, fac
 
         # draw 3d line
         for i, j in g_current.edges():
-            val = g_current.edge[i][j][sys]
+            ##val = g_current.edge[i][j][sys]
+            val = g_current[i][j][sys]
             if val > cutoff:
                 ax.plot(xs=[i[0] * xstretch, j[0] * xstretch],
                         ys=[i[1] * ystretch, j[1] * ystretch],
@@ -788,7 +805,8 @@ def plot_current(g_current, LA_I, cutoff=0.0, scale=1.0, elev=15, angle=-75, fac
 
         # draw 3d scatter
         for n in g_current.nodes():
-            val = g_current.node[n][sys]
+            ##val = g_current.node[n][sys]
+            val = g_current.nodes[n][sys]
 
             if val > cutoff:
                 # if component location
@@ -815,7 +833,7 @@ def plot_current(g_current, LA_I, cutoff=0.0, scale=1.0, elev=15, angle=-75, fac
         m = plt.cm.ScalarMappable(cmap=cmaps[sys])
         #         m.set_array(vals)
         m.set_array([0.0, 1.0])
-        cbar = plt.colorbar(m, ax=ax, pad=-0.2)
+        cbar = plt.colorbar(m, ax=ax, pad=-0.3)
         cbar.ax.set_ylabel('Probability of {} system'.format(sys), fontsize=cbar_size)
 
 
@@ -838,9 +856,9 @@ def plot_setups(g, LA, cutoff=0.0, scale=1.0, elev=15, angle=-75, factor=2.0):
     alpha = 0.85
 
     # axis
-    xstretch = 1.0
-    ystretch = 1.0
-    zstretch = 1.0
+    xstretch = 5.0
+    ystretch = 2.0
+    zstretch = 2.0
 
     # view
     elev = elev
@@ -852,11 +870,14 @@ def plot_setups(g, LA, cutoff=0.0, scale=1.0, elev=15, angle=-75, factor=2.0):
         if sys not in LA_I['systems']:
             continue
         for LA_n in LA[sys].nodes():
-            for l, prob in LA[sys].node[LA_n]['loc'].items():
+            ##for l, prob in LA[sys].node[LA_n]['loc'].items():
+            for l, prob in LA[sys].nodes[LA_n]['loc'].items():
                 if prob == 'un':
-                    n_locs = len(list(LA_I[sys].node[LA_n]['loc'].keys()))
+                    ##n_locs = len(list(LA_I[sys].node[LA_n]['loc'].keys()))
+                    n_locs = len(list(LA_I[sys].nodes[LA_n]['loc'].keys()))
                     prob = 1.0 / n_locs
-                    LA_I[sys].node[LA_n]['loc'][l] = prob
+                    ##LA_I[sys].node[LA_n]['loc'][l] = prob
+                    LA_I[sys].nodes[LA_n]['loc'][l] = prob
 
     # number of systems
     n_sys = len(LA_I['systems'])
@@ -915,8 +936,8 @@ def plot_setups(g, LA, cutoff=0.0, scale=1.0, elev=15, angle=-75, factor=2.0):
         mean_z = np.mean(z_l)
         min_z = min(z_l)
 
-        ax.text3D(min_x - .5, 0, mean_z, 'Stern', zdir='z', fontsize=label_size)
-        ax.text3D(max_x + .3, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
+        ax.text3D(min_x - 4.5, 0, mean_z, 'Stern', zdir='z', fontsize=label_size)
+        ax.text3D(max_x + 4.3, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
         ax.text3D(mean_x, 0, min_z - 1.5, 'Keel', zdir='x', fontsize=label_size)
 
         # component locations
@@ -988,8 +1009,10 @@ def plot_setups(g, LA, cutoff=0.0, scale=1.0, elev=15, angle=-75, factor=2.0):
         m = plt.cm.ScalarMappable(cmap=cmaps[sys])
         #         m.set_array(vals)
         m.set_array([0.0, 1.0])
-        cbar = plt.colorbar(m, ax=ax, pad=-0.2)
-        cbar.ax.set_ylabel('Pr({} system LA edge)'.format(sys), fontsize=cbar_size)
+
+        #MATT TAKING AWAY THE LEGEND
+        #cbar = plt.colorbar(m, ax=ax, pad=-0.2)
+        #cbar.ax.set_ylabel('Pr({} system LA edge)'.format(sys), fontsize=cbar_size)
 
 
 
@@ -1012,31 +1035,34 @@ def plot_locations2(g_current, LA, components, cutoff=0.0, scale=1.0, elev=15, a
     alpha = 0.85
 
     # axis
-    xstretch = 1.0
-    ystretch = 1.0
-    zstretch = 1.0
+    xstretch = 5.0
+    ystretch = 2.0
+    zstretch = 2.0
 
     # view
     elev = elev
     angle = angle
 
-    figsize = (16, 4)
+    figsize = (30, 10)
 
     # text
     title_size = 16
     sub_size = 14
     label_size = 16
     cbar_size = 12
-
+    legend_size = 8
     # reformat LA to convert 'un' into uniform
     LA_I = copy.deepcopy(LA)
     for sys in LA['systems']:
         for LA_n in LA[sys].nodes():
-            for l, prob in LA[sys].node[LA_n]['loc'].items():
+            ##for l, prob in LA[sys].node[LA_n]['loc'].items():
+            for l, prob in LA[sys].nodes[LA_n]['loc'].items():
                 if prob == 'un':
-                    n_locs = len(list(LA_I[sys].node[LA_n]['loc'].keys()))
+                    ##n_locs = len(list(LA_I[sys].node[LA_n]['loc'].keys()))
+                    n_locs = len(list(LA_I[sys].nodes[LA_n]['loc'].keys()))
                     prob = 1.0 / n_locs
-                    LA_I[sys].node[LA_n]['loc'][l] = prob
+                    ##LA_I[sys].node[LA_n]['loc'][l] = prob
+                    LA_I[sys].nodes[LA_n]['loc'][l] = prob
 
     # set cmaps
     cmap_list = ['b', 'r', 'm', 'g', 'c', 'y','k', 'w', ]
@@ -1074,8 +1100,8 @@ def plot_locations2(g_current, LA, components, cutoff=0.0, scale=1.0, elev=15, a
     mean_z = np.mean(z_l)
     min_z = min(z_l)
 
-    ax.text3D(min_x - .5, 0, mean_z, 'Stern', zdir='z', fontsize=label_size)
-    ax.text3D(max_x + .3, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
+    ax.text3D(min_x - 2.0, 0, mean_z, 'Stern', zdir='z', fontsize=label_size)
+    ax.text3D(max_x + 4.3, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
     ax.text3D(mean_x, 0, min_z - 1.5, 'Keel', zdir='x', fontsize=label_size)
 
     # draw 3d line for phyical architecture
@@ -1094,7 +1120,8 @@ def plot_locations2(g_current, LA, components, cutoff=0.0, scale=1.0, elev=15, a
 
         for sys in LA_I['systems']:
             if comp in LA_I[sys]:
-                locs = LA_I[sys].node[comp]['loc']
+                ##locs = LA_I[sys].node[comp]['loc']
+                locs = LA_I[sys].nodes[comp]['loc']
                 break
 
         for n, prob in locs.items():
@@ -1133,8 +1160,9 @@ def plot_locations2(g_current, LA, components, cutoff=0.0, scale=1.0, elev=15, a
     legend1 = plt.legend(legend1_line2d,
                          components,
                          numpoints=1,
-                         fontsize=sub_size,
-                         loc='best',
+                         fontsize=legend_size,
+                         #loc='best',
+                         loc='upper left',
                          shadow=True)
 
     legend2_line2d = list()
@@ -1161,8 +1189,8 @@ def plot_locations2(g_current, LA, components, cutoff=0.0, scale=1.0, elev=15, a
                          ['0.5', '1.0'],
                          title='Probability of component',
                          numpoints=1,
-                         fontsize=sub_size,
-                         loc='upper left',
+                         fontsize=legend_size,
+                         loc='upper right',
                          frameon=False,  # no edges
                          labelspacing=2,  # increase spacing between labels
                          #                          handlelength=5, # increase spacing between objects and text
@@ -1230,11 +1258,14 @@ def basic_arch(plot=True):
                 g_edge.add_edge(a, b, i=i, r=r, ph=ph, h=h)  # add edge with data
 
             for n in g.nodes():
-                g_edge.node[n]['i'] = 0.0  # set current for nodes
+                ##g_edge.node[n]['i'] = 0.0  # set current for nodes
+                g_edge.nodes[n]['i'] = 0.0  # set current for nodes
                 ph = [ph_ini for x in range(num_obj)]  # pheromone
                 h = [1.0 for x in range(num_obj)]  # heuristic
-                g_edge.node[n]['ph'] = ph
-                g_edge.node[n]['h'] = h
+                ##g_edge.node[n]['ph'] = ph
+                g_edge.nodes[n]['ph'] = ph
+                ##g_edge.node[n]['h'] = h
+                g_edge.nodes[n]['h'] = h
             net[j][k]['g'] = g_edge
     for comp in la['components']:
         # assign current, pheromones, resistances and heuristics to component locations
@@ -1286,7 +1317,8 @@ def setup_LA(g,la):
                 g_edge.add_edge(a, b, i=i, r=r)  # add edge with data
 
             for n in g.nodes():
-                g_edge.node[n]['i'] = 0.0  # set current for nodes
+                ##g_edge.node[n]['i'] = 0.0  # set current for nodes
+                g_edge.nodes[n]['i'] = 0.0  # set current for nodes
             net[j][k]['g'] = g_edge
     for comp in la['components']:
         # assign current, pheromones, resistances and heuristics to component locations
