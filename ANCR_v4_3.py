@@ -937,7 +937,7 @@ def plot_setups(g, LA, cutoff=0.0, scale=1.0, elev=15, angle=-75, factor=2.0):
         min_z = min(z_l)
 
         ax.text3D(min_x - 4.5, 0, mean_z, 'Stern', zdir='z', fontsize=label_size)
-        ax.text3D(max_x + 4.3, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
+        ax.text3D(max_x + 5.3, 0, mean_z, 'Bow', zdir='z', fontsize=label_size)
         ax.text3D(mean_x, 0, min_z - 1.5, 'Keel', zdir='x', fontsize=label_size)
 
         # component locations
